@@ -1,14 +1,14 @@
-function [X_train, X_test, y_train, y_test] = particion_train_test(X, y, testPercentage)
-    % particion_train_test splits the dataset into training and testing subsets.
-    % Inputs:
-    %   X - Feature matrix (rows are samples, columns are features)
-    %   y - Label vector (rows are labels for corresponding X)
-    %   testPercentage - Percentage of the data to use for testing (0-100)
-    % Outputs:
-    %   X_train - Training subset of X
-    %   X_test - Testing subset of X
-    %   y_train - Training subset of y
-    %   y_test - Testing subset of y
+function [X_train, X_test, y_train, y_test] = particion_train_test(X, y, porcentaje_test)
+% particion_train_test divide el conjunto de datos en subconjuntos de entrenamiento y prueba.
+% Entradas:
+%   X - Matriz de características (las filas son muestras, las columnas son características)
+%   y - Vector de etiquetas (las filas son etiquetas correspondientes a X)
+%   testPercentage - Porcentaje de los datos a utilizar para prueba (0-100)
+% Salidas:
+%   X_train - Subconjunto de entrenamiento de X
+%   X_test - Subconjunto de prueba de X
+%   y_train - Subconjunto de entrenamiento de y
+%   y_test - Subconjunto de prueba de y
 
     % Check that X and y have compatible dimensions
     if size(X, 1) ~= length(y)
@@ -21,7 +21,7 @@ function [X_train, X_test, y_train, y_test] = particion_train_test(X, y, testPer
     indices = randperm(numSamples);
 
     % Determine the split point
-    numTest = round(testPercentage * numSamples);
+    numTest = round(porcentaje_test * numSamples);
     testIndices = indices(1:numTest);
     trainIndices = indices(numTest + 1:end);
 

@@ -9,14 +9,14 @@ lambda = 0.1;
 % Obtenemos los momentos estadísticos por montecarlo
 
 % Input distribution parameters
-N = 1e5; % Number of samples
+N = 100; % Number of samples
 mu = zeros(1, num_entrada); % Mean vector
 Sigma = eye(num_entrada); % Covariance matrix (identity for independent normal variables)
 
 % Generate random samples
 x_samples = mvnrnd(mu, Sigma, N); % N samples, each of size n
 
-y_samples = x_samples * S';
+y_samples = x_samples .* S;
 
 % Evaluate the function on the samples
 phi_y_samples = predict(W1, W2, y_samples); % f(x) applied row-wise to x_samples

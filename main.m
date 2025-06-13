@@ -18,6 +18,7 @@ fprintf('Loading and Visualizing Data ...\n')
 load('mnist-original.mat');
 X = double(data');
 X = double(X) / 255;
+X = X - mean(X);
 label(label == 0) = 10;
 y = label';
 
@@ -30,7 +31,7 @@ sel = sel(1:100);
 
 displayData(X(sel, :));
 
-fprintf('Program paused. Press enter to continue.\n');
+fprintf('Programa pausado. Presionar enter para continuar.\n');
 pause;
 
 
@@ -43,7 +44,7 @@ fprintf('Tamaño X_test: %d x %d\n', size(X_test, 1), size(X_test, 2));
 fprintf('Tamaño y_train: %d x %d\n', size(y_train, 1), size(y_train, 2));
 fprintf('Tamaño y_test: %d x %d\n', size(y_test, 1), size(y_test, 2));
 displayData(X_train(1:100, :));
-fprintf('Program paused. Press enter to continue.\n');
+fprintf('Programa pausado. Presionar enter para continuar.\n');
 pause;
 
 
@@ -57,6 +58,42 @@ disp('Distribución de etiquetas en el conjunto de test:');
 disp(labelCounts);
 pause
 
+%----------------------------------PCA------------------------------------%
+%{
+covarianza_X = cov(X_train);
+
+[Q, Lambda] = eig(covarianza_X);
+
+% Lambda es la matriz diagonal con los autovalores
+% Q es la matriz que tiene los autovectores como columnas
+
+% Reordenamos los autovalores de mayor a menor
+eigenvalues = diag(Lambda); % Extract eigenvalues as a vector
+[sortedEigenvalues, idx] = sort(abs(eigenvalues), 'descend'); % Sort by absolute value
+
+% Ordenamos los autovectores según los autovalores
+sortedEigenvectors = Q(:, idx);
+
+cumulativeSum = cumsum(sortedEigenvalues);
+
+% Plot cumulative sum
+figure;
+plot(cumulativeSum, '-o', 'LineWidth', 2);
+title('Varianza explicada por cada de componentes principales');
+xlabel('Número de componentes principales');
+ylabel('Suma de la varianza acumulada');
+grid on;
+
+fprintf('Programa pausado. Presionar enter para continuar.\n');
+pause;
+
+k = 100; % Choose the number of dimensions
+topKEigenvectors = sortedEigenvectors(:, 1:k);
+
+X_train = X_train * topKEigenvectors;
+X_test = X_test * topKEigenvectors;
+displayData(X_train(1:100, :));
+%}
 %--------------------------Inicialización NN------------------------------%
 
 % Inicialización aleatoria de los pesos
@@ -100,7 +137,7 @@ legend({'Error de entrenamiento', 'Error de test'}, 'Location', 'best'); % Leyen
 %ylim([0 1]);
 grid on; % Mostrar una cuadrícula
 pause;
-
+%}
 %--------------------------------Figura Learning Curve--------------------%
 
 % Pruebas de learning curve
@@ -116,12 +153,12 @@ for i = 1:length(eps)
     tiempos(i) = toc;
 end
 
-plot(1-eps, log(tiempos), '-o');
+plot(1-eps, tiempos, '-o');
 xlabel('Precisión');
-ylabel('Tiempo de entrenamiento (seconds)');
+ylabel('Tiempo de entrenamiento (segundos)');
 title('Curva de aprendizaje');
 pause;
-%}
+
 %---------------------------------Entrenamiento---------------------------%
 fprintf('\nEntrenando red neuronal... \n')
 max_iter = 10000;    % Iteraciones máximas del descenso de gradiente
@@ -159,30 +196,36 @@ fprintf('Precisión en el conjunto de test: %f\n', precision * 100);
 % Seleccionamos una imagen que ha sido bien clasificada
 correct_indices = find(pred == y_test); % Índices de las predicciones correctas
 selected_index = correct_indices(randi(length(correct_indices))); % Elegimos un índice aleatorio de los correctos
-selected_image = reshape(X_test(selected_index, :), [28,28]) % Imagen seleccionada
+selected_image = reshape(X_test(selected_index, :), [28,28]); % Imagen seleccionada
 
 % Visualizamos la imagen seleccionada
-displaySingleImage(selected_image);
+displaySingleImage(X, selected_index);
 title('Imagen seleccionada que ha sido bien clasificada');
+fprintf("El número es un %d\n", pred(selected_index));
+
 % Generamos una máscara aleatoria de números entre 0 y 1 del tamaño de la imagen
 S = rand(size(selected_image));
 % Llamamos a gradiente numérico para minimizar la función de distorsión
 
 % Aplanamos la imagen y la máscara
-x = selected_image(:);
-S = S(:);
-
+x = selected_image(:)';
+dimensions = size(x)';
+disp(['Size of A: ' num2str(dimensions(1)) 'x' num2str(dimensions(2))]);
+S = S(:)';
+dimensions = size(x)';
+disp(['Size of A: ' num2str(dimensions(1)) 'x' num2str(dimensions(2))]);
 %Creamos una abreviatura de la distorsión para llamarla solo con la máscara
 distortionFunction = @(S) distorsion(pesos, num_entrada, num_oculta, num_etiquetas, x, S);
 
-for i = 1:1000
+for i = 1:300
     fprintf("Iteración %d\n", i);
-    S = S + gradientenumerico(distortionFunction, S, 0.001);
+    S = S + gradientenumerico(distortionFunction, S, 0.1);
+    S = min(max(S, 0), 1);
 end
 
 fprintf('distorsión final: %f\n', distortionFunction(S));
 
 
 % Visualizamos la máscara
-displaySingleImage(reshape(S_opt, size(selected_image))); 
+displaySingleImage(reshape(S, size(selected_image))); 
 title('Máscara generada para la imagen seleccionada');

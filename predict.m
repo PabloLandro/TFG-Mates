@@ -1,18 +1,17 @@
-function [pred, precision] = predict(Theta1, Theta2, X, y)
+function [pred, precision] = predict(W1, W2, X, y)
 
-% Useful values
 m = size(X, 1);
 
-% You need to return the following variables correctly 
 pred = zeros(size(X, 1), 1);
 
-h1 = activation([ones(m, 1) X] * Theta1');
-h2 = activation([ones(m, 1) h1] * Theta2');
+h1 = sigmoidal([ones(m, 1) X] * W1');
+h2 = sigmoidal([ones(m, 1) h1] * W2');
 [~, pred] = max(h2, [], 2);
 
-if isempty(y)
+if ~exist('y') || isempty(y)
     precision = 0;
 else
+    % Si se pasa el valor de y, también devolvemos la precisión
     precision = mean(double(pred == y));
 end
 
