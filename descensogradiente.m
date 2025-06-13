@@ -1,14 +1,18 @@
-function [pesos, i] = descensogradiente(coste, pesos_iniciales, X, y, desenrollar, max_iter, eps)
+function [pesos, i] = descensogradiente(coste, pesos_iniciales, X, y, desenrollar, max_iter, eps, stoch)
+
+if nargin < 8
+    stoch = 100;
+end
 
 learning_rate = 0.5;
 
 num_rows = size(X, 1);
-num_select = ceil(100 * num_rows / 100);
+num_select = ceil(stoch * num_rows / 100);
 sel = randperm(size(X, 1));
 sel = sel(1:num_select);
 
-%X = X(sel, :);
-%y = y(sel,:);
+X = X(sel, :);
+y = y(sel,:);
 
 pesos = pesos_iniciales;
 
